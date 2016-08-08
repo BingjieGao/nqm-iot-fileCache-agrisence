@@ -10,6 +10,7 @@ module.exports = (function() {
   var path = require("path");
   var dirname = path.dirname(require.main.filename);
   var localDatapath = path.join(__dirname,"../../../","temp.json");
+  var localDatapath2 = path.join(__dirname,"../../../","hum.json");
   var _ = require("lodash");
   var util = require('util');
 
@@ -235,7 +236,7 @@ module.exports = (function() {
     startTransmitTimer.call(this);
   };
 
-function readFileLine(datapath,feedId,dataIn,callback){
+  function readFileLine(datapath,feedId,dataIn,callback){
     var ff = feedId;
     console.log(ff);
     fs.open(datapath,'a+',function(err,fd){
@@ -254,38 +255,93 @@ function readFileLine(datapath,feedId,dataIn,callback){
             console.log('datum is =>'+JSON.stringify(datum));
           }
           else{
-              console.log("ddddd");
-              var feedId = JSON.parse(data).feedId;
-             var TempData = JSON.parse(data).TempData;
-             if(util.isArray(TempData)){
-                TempData.push(dataIn);
-              }
-              else{
-                TempData = [];
-                TempData.push(JSON.parse(data).TempData);
-                TempData.push(dataIn);
-              }
-             //TempData.push(JSON.parse(data).TempData);
+            console.log("ddddd");
+            var feedId = JSON.parse(data).feedId;
+            var TempData = JSON.parse(data).TempData;
+            if(util.isArray(TempData)){
+              TempData.push(dataIn);
+            }
+            else{
+              TempData = [];
+              TempData.push(JSON.parse(data).TempData);
+              TempData.push(dataIn);
+            }
+            //TempData.push(JSON.parse(data).TempData);
             console.log('new temp data'+TempData);
             datum = {
               feedId:feedId,
               TempData:TempData
-             };
-           }
-           callback(datum);
-          })
-        }
-      })
-    }
+            };
+          }
+          callback(datum);
+        })
+      }
+    })
+  }
+
+  function readFileLine2(datapath,feedId,dataIn,callback){
+    var ff = feedId;
+    console.log(ff);
+    fs.open(datapath,'a+',function(err,fd){
+      if(err)
+        console.log(err);
+      else{
+        fs.readFile(localDatapath2,'utf8',function(err,data){
+          console.log(ff);
+          console.log(data);
+          var datum = null;
+          if(data == null || data == ""){
+            console.log('empty');
+            datum = {
+              feedId:ff,
+              HumData:dataIn
+            };
+            console.log('datum is =>'+JSON.stringify(datum));
+          }
+          else{
+            console.log("ddddd");
+            var feedId = JSON.parse(data).feedId;
+            var HumData = JSON.parse(data).HumData;
+            if(util.isArray(HumData)){
+              HumData.push(dataIn);
+            }
+            else{
+              HumData = [];
+              HumData.push(JSON.parse(data).HumData);
+              HumData.push(dataIn);
+            }
+            //TempData.push(JSON.parse(data).TempData);
+            console.log('new temp data'+HumData);
+            datum = {
+              feedId:feedId,
+              HumData:HumData
+            };
+          }
+          callback(datum);
+        })
+      }
+    })
+  }
 
   FileCache.prototype.saveTemp = function(feedId,dataIn){
     readFileLine(localDatapath,feedId,dataIn,function(datum){
 
-        console.log('final result'+JSON.stringify(datum));
-        fs.writeFile(localDatapath,JSON.stringify(datum),{ flag : 'w' },function(err){
+      console.log('final result'+JSON.stringify(datum));
+      fs.writeFile(localDatapath,JSON.stringify(datum),{ flag : 'w' },function(err){
         if(err)
           console.log(err);
-        });
+      });
+    })
+  }
+
+  FileCache.prototype.saveHum = function(feedId,dataIn){
+    readFileLine2(localDatapath2,feedId,dataIn,function(datum){
+
+      console.log('final result'+JSON.stringify(datum));
+      fs.writeFile(localDatapath2,JSON.stringify(datum),{ flag : 'w' },function(err){
+        if(err)
+          console.log(err);
+      });
     })
   }
   FileCache.prototype.cacheTempData = function(dataIn) {
